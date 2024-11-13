@@ -1,0 +1,22 @@
+Sure. Please note that it's likely that this only works for this particular brand/type of ring and may cause unexpected things to happen to other types, including the RF03. This may vary from just draining the battery a bit faster to putting the ring in "self-destruct with fire"-mode. So use this strictly at your own risk. That being said, these are the steps: 
+Accelerometer:
+use service uuid 0x18d0
+subscribe to notifcations from characteristic 0x2d00
+write '0xab0566031a' to characteristic 0x2d01 to start the accelerometer data stream
+format of the notifications is: 5a 0a 67 MSB_X LSB_X MSB_Y LSB_Y MSB_Z LSB_Z XX
+not sure what XX is yet, very sensitive to movement, maybe extra byte precision for Z?
+write '0xab05660499' to characteristic 0x2d01 to end the data stream.
+
+Find device:
+same service_uuid, send '0xab040990' to 0x2d01
+ 
+For other ring types, in case you or someone else wants to reverse engineer the protocol themselves, best way depends on android version, but this worked for me on android 12:
+enable developer mode, turn HCI loggin on, bluetooth on and off, restart.
+do stuff with the app, accelerometer is probably off most of the time, so play one of the games to start it.
+on pc pull the bugreport with: adb bugreport filename
+data is saved in filename.zip
+in the zip, find file /FS/data/log/bt/btsnoop_hci.log
+open the file with wireshark and inspect the ATT packets. In the "Bluetooth Attribute Protocol"-field of the packet, the characteristic can be seen when you expand "Handle" and the data is in "Value".
+don't forget to turn off HCI logging on the phone.
+
+After some cleanup I will put the python code of the test app on github. First have to recover a bit from hyperfocusing on this. 😉
